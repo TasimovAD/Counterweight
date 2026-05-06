@@ -1,0 +1,17 @@
+{
+    "name": "Counterweight.Trebuchet",
+    "rootNamespace": "Counterweight.Trebuchet",
+    "references": [
+        "Counterweight.Core",
+        "Counterweight.Input"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
