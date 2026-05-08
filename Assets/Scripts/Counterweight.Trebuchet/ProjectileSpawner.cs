@@ -11,7 +11,7 @@ namespace Counterweight.Trebuchet
     {
         [SerializeField] private ProjectileConfig projectileConfig;
 
-        public void Spawn(TrebuchetConfig trebuchetConfig, Transform release)
+        public void Spawn(TrebuchetConfig trebuchetConfig, Transform release, float powerMultiplier = 1f)
         {
             if (projectileConfig == null || projectileConfig.prefab == null)
             {
@@ -41,8 +41,11 @@ namespace Counterweight.Trebuchet
             rb.linearDamping = projectileConfig.linearDamping;
             rb.angularDamping = projectileConfig.angularDamping;
             rb.useGravity = true;
+            // Prevents tunneling through thin static colliders at high speed.
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
 
-            Vector3 velocity = BallisticsSolver.ComputeReleaseVelocity(trebuchetConfig, release.forward);
+            Vector3 velocity = BallisticsSolver.ComputeReleaseVelocity(trebuchetConfig, release.forward, powerMultiplier);
             rb.linearVelocity = velocity;
         }
     }

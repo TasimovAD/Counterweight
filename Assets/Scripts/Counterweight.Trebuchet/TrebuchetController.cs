@@ -9,11 +9,17 @@ namespace Counterweight.Trebuchet
     /// Owns trebuchet state, listens for Fire input, drives the Animator,
     /// and tells the spawner when the animation event fires.
     ///
-    /// State flow for the MVP:
-    ///   Idle --(RequestFire)--> Firing --(animation event)--> Released --(timer)--> Idle
+    /// Two-stage interaction:
+    ///   Idle      --(Fire pressed)--> WindingUp --(anim event)--> Armed
+    ///   Armed     --(Fire pressed)--> Firing    --(anim event)--> Released
+    ///   Released  --(timer)-------->  Idle
+    ///
+    /// The same input button advances the trebuchet through the active states.
+    /// Presses during WindingUp/Firing/Released are ignored.
     /// </summary>
     public sealed class TrebuchetController : MonoBehaviour
     {
+        private static readonly int WindUpTrigger = Animator.StringToHash("WindUp");
         private static readonly int FireTrigger = Animator.StringToHash("Fire");
 
         [Header("Configuration")]
@@ -24,6 +30,7 @@ namespace Counterweight.Trebuchet
         [SerializeField] private Transform releasePoint;
         [SerializeField] private ProjectileSpawner spawner;
         [SerializeField] private TrebuchetAnimationRelay animationRelay;
+        [SerializeField] private TrebuchetAimController aimController;
 
         [Header("Tuning")]
         [SerializeField, Min(0.1f)] private float resetDelaySeconds = 3f;
@@ -34,6 +41,7 @@ namespace Counterweight.Trebuchet
         {
             if (animationRelay != null)
             {
+                animationRelay.WindUpComplete += HandleWindUpComplete;
                 animationRelay.ProjectileRelease += HandleProjectileRelease;
             }
             if (InputBridge.Instance != null)
@@ -46,6 +54,7 @@ namespace Counterweight.Trebuchet
         {
             if (animationRelay != null)
             {
+                animationRelay.WindUpComplete -= HandleWindUpComplete;
                 animationRelay.ProjectileRelease -= HandleProjectileRelease;
             }
             if (InputBridge.Instance != null)
@@ -66,18 +75,35 @@ namespace Counterweight.Trebuchet
 
         public void RequestFire()
         {
-            if (State != TrebuchetState.Idle)
-            {
-                return;
-            }
             if (animator == null)
             {
                 Debug.LogError("[TrebuchetController] Animator is not assigned.", this);
                 return;
             }
 
-            State = TrebuchetState.Firing;
-            animator.SetTrigger(FireTrigger);
+            switch (State)
+            {
+                case TrebuchetState.Idle:
+                    State = TrebuchetState.WindingUp;
+                    animator.SetTrigger(WindUpTrigger);
+                    break;
+
+                case TrebuchetState.Armed:
+                    State = TrebuchetState.Firing;
+                    animator.SetTrigger(FireTrigger);
+                    break;
+
+                // WindingUp / Firing / Released / Resetting -> input ignored.
+            }
+        }
+
+        private void HandleWindUpComplete()
+        {
+            if (State != TrebuchetState.WindingUp)
+            {
+                return;
+            }
+            State = TrebuchetState.Armed;
         }
 
         private void HandleProjectileRelease()
@@ -89,7 +115,8 @@ namespace Counterweight.Trebuchet
 
             if (spawner != null)
             {
-                spawner.Spawn(config, releasePoint);
+                float power = aimController != null ? aimController.Power : 1f;
+                spawner.Spawn(config, releasePoint, power);
             }
 
             State = TrebuchetState.Released;

@@ -3,7 +3,8 @@
     "rootNamespace": "Counterweight.Trebuchet",
     "references": [
         "Counterweight.Core",
-        "Counterweight.Input"
+        "Counterweight.Input",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
