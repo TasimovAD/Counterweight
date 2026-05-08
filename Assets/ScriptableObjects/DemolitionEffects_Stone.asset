@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2157658a1daf5ea469c5c22dd949b840, type: 3}
+  m_Name: DemolitionEffects_Stone
+  m_EditorClassIdentifier: Counterweight.Demolition::Counterweight.Demolition.DemolitionEffectsConfig
+  impactDustPrefab: {fileID: 0}
+  detachDustPrefab: {fileID: 0}
+  impactDustLifetime: 2
+  detachDustLifetime: 4
+  impactThudClip: {fileID: 0}
+  impactThudVolume: 0.4
+  jointCrackClip: {fileID: 0}
+  jointCrackVolume: 0.6
+  collapseRumbleClip: {fileID: 0}
+  collapseRumbleVolume: 0.7
+  impactShake: 0
+  detachShake: 0.04
+  collapseShakePerPercent: 0.01
+  collapseShakeMin: 0.05
+  collapseThreshold: 0.04

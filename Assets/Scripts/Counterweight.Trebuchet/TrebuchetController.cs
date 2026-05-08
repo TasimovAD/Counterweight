@@ -10,12 +10,9 @@ namespace Counterweight.Trebuchet
     ///
     /// State flow (advanced via player interactions, see Counterweight.Player):
     ///   Idle      --(BeginWindUp)----> WindingUp --(anim event)--> Armed
-    ///   Armed     --(LoadProjectile)-> Loaded
+    ///   Armed     --(LoadProjectile)-> Loaded   (a specific ProjectileConfig is captured here)
     ///   Loaded    --(ReleaseShot)----> Firing    --(anim event)--> Released
     ///   Released  --(timer)---------->  Idle
-    ///
-    /// Calls outside the matching state are ignored (no-op), so it's safe for
-    /// each interactable to call its method without checking state itself.
     /// </summary>
     public sealed class TrebuchetController : MonoBehaviour
     {
@@ -36,6 +33,7 @@ namespace Counterweight.Trebuchet
         [SerializeField, Min(0.1f)] private float resetDelaySeconds = 3f;
 
         public TrebuchetState State { get; private set; } = TrebuchetState.Idle;
+        public ProjectileConfig LoadedProjectile { get; private set; }
 
         private void OnEnable()
         {
@@ -67,9 +65,10 @@ namespace Counterweight.Trebuchet
             animator.SetTrigger(WindUpTrigger);
         }
 
-        public void LoadProjectile()
+        public void LoadProjectile(ProjectileConfig projectileConfig)
         {
             if (State != TrebuchetState.Armed) return;
+            LoadedProjectile = projectileConfig;
             State = TrebuchetState.Loaded;
         }
 
@@ -98,9 +97,11 @@ namespace Counterweight.Trebuchet
             if (spawner != null)
             {
                 float power = aimController != null ? aimController.Power : 1f;
-                spawner.Spawn(config, releasePoint, power);
+                ProjectileConfig pc = LoadedProjectile != null ? LoadedProjectile : spawner.DefaultProjectileConfig;
+                spawner.Spawn(config, pc, releasePoint, power);
             }
 
+            LoadedProjectile = null;
             State = TrebuchetState.Released;
             StartCoroutine(ResetAfterDelay());
         }

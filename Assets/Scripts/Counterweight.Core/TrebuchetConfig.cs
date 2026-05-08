@@ -24,8 +24,5 @@ namespace Counterweight.Core
 
         [Tooltip("Fraction of counterweight potential energy converted to projectile kinetic energy.")]
         [Range(0f, 1f)] public float launchEfficiency = 0.55f;
-
-        [Tooltip("Projectile mass in kilograms used for the energy equation.")]
-        [Min(0.01f)] public float projectileMass = 8f;
     }
 }

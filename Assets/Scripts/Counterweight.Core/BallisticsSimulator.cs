@@ -23,6 +23,7 @@ namespace Counterweight.Core
         /// <returns>Number of points actually written to the buffer.</returns>
         public static int SimulatePath(
             TrebuchetConfig cfg,
+            float projectileMass,
             Vector3 origin,
             Vector3 launchForward,
             float powerMultiplier,
@@ -40,7 +41,7 @@ namespace Counterweight.Core
                 return 0;
             }
 
-            Vector3 velocity = BallisticsSolver.ComputeReleaseVelocity(cfg, launchForward, powerMultiplier);
+            Vector3 velocity = BallisticsSolver.ComputeReleaseVelocity(cfg, projectileMass, launchForward, powerMultiplier);
             Vector3 position = origin;
             Vector3 gravity = new Vector3(0f, -BallisticsSolver.Gravity, 0f);
 

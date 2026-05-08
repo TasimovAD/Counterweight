@@ -7,6 +7,10 @@ namespace Counterweight.Trebuchet
     /// Drives a <see cref="LineRenderer"/> to draw a "ghost" arc of where the
     /// projectile would land under the current configuration, aim, and power.
     /// Hidden during the actual launch so the real projectile is the focus.
+    ///
+    /// Projectile mass for the simulation is read from the active selection
+    /// (<see cref="ProjectileSelector"/>) when available, falling back to the
+    /// spawner's default config.
     /// </summary>
     [RequireComponent(typeof(LineRenderer))]
     public sealed class TrajectoryRenderer : MonoBehaviour
@@ -16,7 +20,8 @@ namespace Counterweight.Trebuchet
         [SerializeField] private TrebuchetConfig config;
         [SerializeField] private TrebuchetAimController aimController;
         [SerializeField] private Transform releasePoint;
-        [SerializeField] private ProjectileConfig projectileConfig;
+        [SerializeField] private ProjectileSelector projectileSelector;
+        [SerializeField] private ProjectileConfig fallbackProjectileConfig;
 
         [Header("Simulation")]
         [SerializeField] private float groundY = 0f;
@@ -55,15 +60,23 @@ namespace Counterweight.Trebuchet
                 return;
             }
 
+            ProjectileConfig pc = projectileSelector != null ? projectileSelector.Current : null;
+            if (pc == null) pc = fallbackProjectileConfig;
+            if (pc == null)
+            {
+                lineRenderer.positionCount = 0;
+                return;
+            }
+
             float power = aimController != null ? aimController.Power : 1f;
-            float drag = projectileConfig != null ? projectileConfig.linearDamping : 0f;
 
             int count = BallisticsSimulator.SimulatePath(
                 config,
+                pc.mass,
                 releasePoint.position,
                 releasePoint.forward,
                 power,
-                drag,
+                pc.linearDamping,
                 buffer,
                 dt,
                 groundY);

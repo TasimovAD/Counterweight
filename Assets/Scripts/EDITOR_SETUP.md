@@ -886,6 +886,304 @@ breakForce 1200 → запас прочности ~2.2x  → стек стаби
 
 ---
 
+# Iteration 5 — Полировка катарсиса
+
+В коде уже есть:
+- **Block** теперь эмитит события `Damaged(damage, point)` и `Detached(point)`.
+- **`DemolitionEffectsConfig`** — SO, держит ссылки на VFX/SFX/shake-параметры (любое поле может быть `null`, эффект просто не сыграет).
+- **`BlockEffects`** — на каждом блоке слушает `Block`, спавнит частицы и звуки, дёргает CameraShake.
+- **`CameraShake`** — Perlin-noise шейк на localPosition, статический `AddImpact(intensity)`.
+- **`DemolitionRumble`** — следит за `DemolitionTarget.StabilityChanged`, на больших обвалах включает rumble + большой shake.
+- **`BlockDebrisCleaner`** — упавшие отделённые блоки уничтожаются после ~30 сек сна, или сразу если ушли ниже `voidY`.
+
+## Шаг 25. Создать частицы пыли
+
+### 25a. ImpactDust prefab (попадание снаряда)
+1. **GameObject → Effects → Particle System**. Имя `ImpactDust`.
+2. В Inspector у Particle System настрой главный модуль:
+   - **Duration**: 0.5
+   - **Looping**: ❌
+   - **Start Lifetime**: random between 0.5 and 1.0
+   - **Start Speed**: random between 1 and 3
+   - **Start Size**: random between 0.1 and 0.3
+   - **Start Color**: серо-бежевый (например RGBA `200, 190, 170, 200`)
+   - **Gravity Modifier**: 0.5 (пыль слегка оседает)
+3. Раздел **Emission**:
+   - **Rate over Time**: 0
+   - **Bursts**: добавь один → Time 0, Count 15-25.
+4. Раздел **Shape**:
+   - **Shape**: Sphere
+   - **Radius**: 0.1
+5. **Size over Lifetime**: ✅ → curve от 1 в 0 (затухает).
+6. **Color over Lifetime**: ✅ → alpha по timeline от ~200 до 0.
+7. **Renderer → Material**: создай новый материал `M_DustParticle` с шейдером **Universal Render Pipeline → Particles → Unlit**, **Surface Type = Transparent**, **Blending Mode = Alpha**, **Base Map = Default-Particle** (стандартная белая текстура частицы из Built-in).
+   ⚠️ Без URP-совместимого материала пыль будет рендериться розовой/чёрной.
+8. Перетащи `ImpactDust` из Hierarchy в `Assets/Prefabs/VFX/ImpactDust.prefab`. Удали из сцены.
+
+### 25b. DetachDust prefab (срыв блока)
+Скопируй `ImpactDust.prefab` (Ctrl+D в Project), переименуй в `DetachDust`. Потом открой и подкрути:
+- **Duration**: 0.8
+- **Bursts**: Count 40-60
+- **Start Speed**: random 2–5
+- **Start Size**: random 0.15–0.4
+- **Shape Radius**: 0.2
+- **Gravity Modifier**: 0.2 (пыль чуть дольше висит)
+
+Это даст более «густое» облако для срыва.
+
+## Шаг 26. Найти/создать аудиоклипы
+
+Тебе нужны 3 коротких WAV/OGG файла:
+- **Thud** — 0.2-0.4 сек, глухой удар камня (попадание снаряда).
+- **Crack** — 0.3-0.6 сек, треск/скол (срыв joint'а).
+- **Rumble** — 1-3 сек, низкий грохот (обвал больших масс).
+
+Где взять:
+- **freesound.org** (бесплатно, требует регистрации) — поиск: `stone impact`, `rock crack`, `rubble collapse`. Лицензии CC0 или CC-BY.
+- **Sonniss GDC** — бесплатные паки для геймдева (sonniss.com/gameaudiogdc).
+- **Microsoft Sound** или сгенерируй через Audacity.
+
+Сохрани в `Assets/Audio/Demolition/`. Unity автоматически импортирует.
+
+⚠️ Если пока нет — оставь поля в конфиге пустыми, всё остальное (частицы, шейк) работает независимо.
+
+## Шаг 27. Создать `DemolitionEffectsConfig` ассет
+
+1. Правый клик в `Assets/ScriptableObjects` → **Create → Counterweight → Demolition Effects Config**.
+2. Имя: `DemolitionEffects_Stone`.
+3. Заполни:
+   - **Impact Dust Prefab** = `ImpactDust.prefab`
+   - **Detach Dust Prefab** = `DetachDust.prefab`
+   - **Impact Dust Lifetime**: 2
+   - **Detach Dust Lifetime**: 4
+   - **Impact Thud Clip** = (твой thud .wav)
+   - **Impact Thud Volume**: 0.4
+   - **Joint Crack Clip** = (твой crack .wav)
+   - **Joint Crack Volume**: 0.6
+   - **Collapse Rumble Clip** = (твой rumble .wav)
+   - **Collapse Rumble Volume**: 0.7
+   - **Impact Shake**: 0.0 (на одиночный удар не трясём — раздражает)
+   - **Detach Shake**: 0.04
+   - **Collapse Shake Per Percent**: 0.01
+   - **Collapse Shake Min**: 0.05
+   - **Collapse Threshold**: 0.04 (4% drop в одном poll = collapse)
+
+## Шаг 28. Обновить `Block` prefab
+
+1. Открой `Assets/Prefabs/Block.prefab` (двойной клик).
+2. **Add Component → Block Effects** → поле **Config**: `DemolitionEffects_Stone`.
+3. **Add Component → Block Debris Cleaner**:
+   - **Rest Cleanup Delay**: 30 (секунд после засыпания → уничтожение).
+   - **Void Y**: -25.
+4. Сохрани.
+
+⚠️ Обновлённый префаб **автоматически** применится ко всем блокам в башне. **Не нужно** пересобирать `Tower` через Build Tower (но можно, чтобы убедиться).
+
+## Шаг 29. Подключить `DemolitionRumble` к башне
+
+1. Выдели `Tower` в сцене.
+2. **Add Component → Demolition Rumble** → поле **Config**: `DemolitionEffects_Stone`.
+
+## Шаг 30. Подключить `CameraShake` к голове игрока
+
+1. Открой `Player` prefab или просто инстанс в сцене.
+2. На GameObject **`Head`** (родитель PlayerCamera) **Add Component → Camera Shake**.
+3. Параметры по умолчанию ок:
+   - **Decay**: 4
+   - **Max Offset**: 0.25
+   - **Frequency**: 22.
+
+⚠️ **Не вешать на сам PlayerCamera**, иначе при нажатии CameraShake перепишет позицию, которую может попробовать менять что-то другое позже. На Head — родителе камеры — безопасно.
+
+## Шаг 31. Smoke test Iteration 5
+
+1. Play.
+2. Подойди к требушету, натяни → заряди → стреляй в башню.
+3. **Что должно быть:**
+   - При попадании снаряда в блок — облако пыли + thud-звук.
+   - При срыве блока с joint'ов — большое облако пыли + crack-звук + лёгкая тряска камеры.
+   - При обвале нескольких блоков сразу (>4% массы за один poll) — rumble-звук + сильная тряска.
+   - Упавшие блоки лежат секунд 30, потом исчезают (производительность).
+   - HUD стабильности падает как раньше.
+
+### 31a. Если что-то не так
+
+| Симптом | Причина |
+|---|---|
+| Пыль рендерится розовой | Материал на Particle System не URP-совместимый. Поставь Particles/Unlit URP. |
+| Звуки не играют | `AudioSource.PlayClipAtPoint` — нужен AudioListener в сцене (на PlayerCamera обычно есть автоматически). Проверь. |
+| Камера трясётся бесконечно | `currentIntensity` не обнуляется — проверь, что `decay > 0` в CameraShake. |
+| Камера трясётся, но как будто пьяная | `frequency` слишком низкий → медленный сильный сдвиг. Подними до 25-30. |
+| Шейк ломает обзор камеры | CameraShake висит на Head, а PlayerController крутит Head по rotation. Должно работать, но если конфликтует — попробуй вынести в child Head GO. |
+| Блоки не уничтожаются после падения | Block.IsDetached=false (joints всё ещё держат). Нормально — значит блок не упал. |
+| Блоки уничтожаются прямо во время битвы | `Rest Cleanup Delay` слишком короткий, или блок в покое уже был. Подними до 60. |
+| Слишком много частиц / лагает | Уменьши Bursts.Count в обоих prefab'ах. |
+
+### 31b. Тонкий тюнинг по вкусу
+
+- **Меньше пыли при попадании** — снизь Burst Count в `ImpactDust` до 8-10.
+- **Драматичнее обвал** — повысь `Collapse Shake Per Percent` до 0.02 и `Collapse Shake Min` до 0.1.
+- **Тише шейк** — снизь `Detach Shake` до 0.02 и `Collapse Shake Min` до 0.03. Помни про cozy: дрожать должно **слегка**, не как в шутерах.
+- **Эстетика звука** — для cozy лучше глухие, древние, не «современный экшен» сэмплы. Пыльный «*hpf*» вместо стерильного thud.
+
+---
+
+## Управление в Iteration 5
+
+То же что в Iteration 4. Эффекты — пассивные, реагируют на разрушение.
+
+---
+
+# Iteration 6 — Engineer's Lens + типы снарядов
+
+В коде уже есть:
+
+**Типы снарядов:**
+- `BallisticsSolver` / `BallisticsSimulator` — `projectileMass` теперь **обязательный параметр**, а не поле в TrebuchetConfig.
+- `TrebuchetConfig.projectileMass` — **удалён** (масса берётся из выбранного `ProjectileConfig`).
+- `ProjectileSelector` — список доступных типов, переключение по 1/2/3, lock на состоянии Loaded.
+- `ProjectileSelectorHUD` — список снарядов в правом верхнем углу, активный отмечен ●.
+- `LoadStoneInteractable` — забирает `selector.Current` в момент загрузки → `controller.LoadProjectile(config)`.
+- `TrebuchetController.LoadedProjectile` — то, что физически в корзине. При Fire выстреливается именно оно.
+- `TrajectoryRenderer` — призрак считает с массой/drag активного снаряда.
+
+**Engineer's Lens:**
+- `EngineerLens` (static) — глобальное состояние + `ActiveChanged` event.
+- `EngineerLensInput` — слушает Tab, тоггл состояния, маленькая HUD-подсказка слева внизу.
+- `BlockLensIndicator` — per-block: при активной лупе красит блок через `MaterialPropertyBlock` lerp(damaged → healthy) по HpFraction.
+- `Block.MaxHp` / `HpFraction` — публичные accessors.
+
+## Шаг 32. Обновить `TrebuchetConfig_Default`
+
+Поле **Projectile Mass** в Inspector **исчезло** (удалил из кода). Asset просто потерял эту переменную — ничего страшного, остальные поля целы.
+
+⚠️ Если у тебя вылетают **CompilerError'ы** про `projectileMass` — обнови Unity (Ctrl+R пересборка). Все ссылки в коде заменены.
+
+## Шаг 33. Создать три ProjectileConfig'а
+
+### 33a. Stone (current — переименуй существующий)
+Открой `Assets/ScriptableObjects/ProjectileConfig_Stone`. Уже есть. Параметры:
+- **Mass**: 8
+- **Linear Damping**: 0.05
+- **Angular Damping**: 0.05
+- **Prefab**: `StoneProjectile.prefab`
+
+### 33b. ClayPot (новый)
+1. Правый клик в `ScriptableObjects` → **Create → Counterweight → Projectile Config**.
+2. Имя: `ProjectileConfig_ClayPot`.
+3. Параметры:
+   - **Mass**: 3
+   - **Linear Damping**: 0.1 (более «парусный»)
+   - **Angular Damping**: 0.1
+   - **Prefab**: пока тот же `StoneProjectile` (или сделай копию ниже).
+
+### 33c. WoodenBall (новый)
+1. **Create → Counterweight → Projectile Config**.
+2. Имя: `ProjectileConfig_WoodenBall`.
+3. Параметры:
+   - **Mass**: 1.5
+   - **Linear Damping**: 0.05
+   - **Angular Damping**: 0.05
+   - **Prefab**: `StoneProjectile` или копия с другим цветом.
+
+### 33d. (Опционально) Визуальные prefab'ы
+Чтобы три снаряда выглядели по-разному:
+1. Скопируй `StoneProjectile.prefab` → переименуй в `ClayPotProjectile`. Покрась materialом светло-коричневого глиняного цвета.
+2. Скопируй ещё раз → `WoodenBallProjectile`. Тёмно-коричневый.
+3. В `ProjectileConfig_ClayPot.Prefab` поставь `ClayPotProjectile`, в `WoodenBall` соответственно.
+
+⚠️ Можешь это пропустить — функционально работает с одним префабом.
+
+## Шаг 34. Обновить `Trebuchet.prefab`
+
+1. Открой `Assets/Prefabs/Trebuchet.prefab`.
+2. На корневом GameObject **Add Component → Projectile Selector**:
+   - **Configs**: добавь три элемента: `Stone`, `ClayPot`, `WoodenBall` (в этом порядке — индексы 1/2/3).
+   - **Lock Source**: перетащи `TrebuchetController` (тот же GameObject).
+3. На корневом GameObject найди **`LoadStoneInteractable`** (тот, что внутри `LoadStonePoint`):
+   - **Selector**: перетащи `ProjectileSelector` (компонент с корня требушета).
+4. На `TrajectoryGhost` GameObject в `TrajectoryRenderer`:
+   - **Projectile Selector**: перетащи Selector с корня.
+   - **Fallback Projectile Config**: оставь `ProjectileConfig_Stone` (на случай, если Selector пустой).
+5. На `ProjectileSpawner` в поле **Default Projectile Config** поставь `ProjectileConfig_Stone` (fallback).
+
+## Шаг 35. HUD выбора снаряда
+
+1. Создай в сцене пустой GameObject `ProjectileHUD` (или прямо на `Player`).
+2. **Add Component → Projectile Selector HUD**:
+   - **Selector**: перетащи Selector с требушета.
+   - **Screen Offset**: (20, 20).
+
+🔍 Запусти Play. В правом верхнем углу должен появиться список:
+```
+[1] ProjectileConfig_Stone  ●
+[2] ProjectileConfig_ClayPot
+[3] ProjectileConfig_WoodenBall
+```
+
+Нажми **2** → активный сместится. Призрак траектории должен немедленно перерисоваться (короткая дуга для лёгкого снаряда → дальний полёт).
+
+## Шаг 36. Engineer's Lens
+
+### 36a. Подключить input
+1. На сцене (или на `Player`) **Add Component → Engineer Lens Input**. Параметры по умолчанию ок.
+
+### 36b. Подключить per-block indicator
+1. Открой `Assets/Prefabs/Block.prefab`.
+2. **Add Component → Block Lens Indicator**. Параметры:
+   - **Healthy Color**: светло-зелёный (по умолчанию).
+   - **Damaged Color**: оранжево-красный.
+3. Сохрани префаб. **Все блоки в башне получат этот компонент автоматически** (через инстансиро через TowerBuilder или через prefab override).
+
+⚠️ Если ты собрал башню **до** добавления BlockLensIndicator на префаб — пересобери: на `Tower` GameObject → ⋮ → Clear → ⋮ → Build Tower.
+
+### 36c. Smoke test лупы
+1. Play. Нажми **Tab** — внизу левого угла подсказка переключится на «вкл».
+2. Все блоки в башне должны окраситься в **зелёный**.
+3. Стреляй — попадаешь, блок получает урон, **меняет цвет от зелёного к оранжевому-красному**.
+4. Когда блок отрывается (Detached), окраска **снимается** — ты видишь, что он больше не часть структуры.
+5. Нажми Tab снова — все цвета сбрасываются.
+
+⚠️ Если блоки розовые при включённой лупе — это URP проблема: твой материал на блоке не использует `_BaseColor`. Стандартный URP/Lit всегда использует это имя. Если у тебя custom shader, ищи имя свойства цвета и поправь `BaseColorId` в коде. Или проще: поставь блокам стандартный URP/Lit материал.
+
+## Шаг 37. Smoke test полного Iteration 6
+
+1. Play.
+2. В правом верхнем углу — список снарядов, активный Stone.
+3. Призрак траектории — стандартная дуга.
+4. Нажми **2** → Clay Pot. Призрак удлиняется (легче снаряд → летит быстрее → дальше).
+5. Нажми **3** → Wooden Ball. Призрак ещё длиннее.
+6. Нажми **Tab** → башня окрашивается зелёным.
+7. Подойди к лебёдке → E. Подойди к корзине → E (загрузка снаряда — текущий выбранный заряжается). Заметь: **HUD списка теперь не реагирует на 1/2/3** — заблокирован, пока не выстрелишь.
+8. Подойди к рычагу → E.
+9. Wooden Ball улетает дальше Stone, но при попадании наносит **меньше урона** (меньше масса → меньше импульс → меньше damage).
+10. После Released можно снова менять снаряд.
+
+### 37a. Тонкий тюнинг
+
+| Хочу | Поверни |
+|---|---|
+| Stone слишком слабый | `Damage Threshold` ↓ или `Damage Multiplier` ↑ в `BlockConfig_Stone` |
+| Wooden Ball вообще не наносит урон | в `BlockConfig` понизь `Damage Threshold` (10 вместо 20). Лёгкий снаряд имеет малый импульс — порог его «съедает» |
+| Clay Pot и Wooden Ball выглядят одинаково | сделай разные prefab'ы (шаг 33d) с разными цветами/размерами |
+| Лупа цвета слишком ярко | подкрути `Healthy Color`/`Damaged Color` в `BlockLensIndicator` (уменьши saturation) |
+| Призрак не обновляется при смене снаряда | `Trajectory Renderer.Projectile Selector` не назначен. Проверь |
+
+---
+
+## Управление в Iteration 6
+
+| Клавиша | Действие |
+|---|---|
+| WASD / Mouse / E | Ходьба, обзор, интеракция |
+| ←/→ | Поворот основания |
+| ↑/↓ или Mouse Wheel | Регулировка мощности |
+| **1 / 2 / 3** | Выбор типа снаряда |
+| **Tab** | Лупа инженера (вкл/выкл) |
+| Esc / LMB | Курсор |
+
+---
+
 ## Что **не нужно** делать
 
 - Не трогать `SampleScene.unity` — там пусто, она нам не интересна.

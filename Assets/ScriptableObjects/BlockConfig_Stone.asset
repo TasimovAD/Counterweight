@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c407f77f14493a4383109bf94d4f1e9, type: 3}
   m_Name: BlockConfig_Stone
   m_EditorClassIdentifier: Counterweight.Demolition::Counterweight.Demolition.BlockConfig
-  mass: 50
-  maxHp: 30
-  damageThreshold: 30
+  mass: 5
+  maxHp: 20
+  damageThreshold: 20
   damageMultiplier: 0.3
-  jointBreakForce: 1500
-  jointBreakTorque: 1500
+  jointBreakForce: 1200
+  jointBreakTorque: 1200

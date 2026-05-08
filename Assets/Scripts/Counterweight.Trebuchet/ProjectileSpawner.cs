@@ -9,11 +9,15 @@ namespace Counterweight.Trebuchet
     /// </summary>
     public sealed class ProjectileSpawner : MonoBehaviour
     {
-        [SerializeField] private ProjectileConfig projectileConfig;
+        [Tooltip("Used as a fallback when the controller doesn't pass a specific config (e.g. nothing loaded).")]
+        [SerializeField] private ProjectileConfig defaultProjectileConfig;
 
-        public void Spawn(TrebuchetConfig trebuchetConfig, Transform release, float powerMultiplier = 1f)
+        public ProjectileConfig DefaultProjectileConfig => defaultProjectileConfig;
+
+        public void Spawn(TrebuchetConfig trebuchetConfig, ProjectileConfig projectileConfig, Transform release, float powerMultiplier = 1f)
         {
-            if (projectileConfig == null || projectileConfig.prefab == null)
+            ProjectileConfig effective = projectileConfig != null ? projectileConfig : defaultProjectileConfig;
+            if (effective == null || effective.prefab == null)
             {
                 Debug.LogError("[ProjectileSpawner] Missing ProjectileConfig or prefab.", this);
                 return;
@@ -29,7 +33,7 @@ namespace Counterweight.Trebuchet
                 return;
             }
 
-            GameObject instance = Instantiate(projectileConfig.prefab, release.position, release.rotation);
+            GameObject instance = Instantiate(effective.prefab, release.position, release.rotation);
 
             if (!instance.TryGetComponent(out Rigidbody rb))
             {
@@ -37,15 +41,14 @@ namespace Counterweight.Trebuchet
                 return;
             }
 
-            rb.mass = projectileConfig.mass;
-            rb.linearDamping = projectileConfig.linearDamping;
-            rb.angularDamping = projectileConfig.angularDamping;
+            rb.mass = effective.mass;
+            rb.linearDamping = effective.linearDamping;
+            rb.angularDamping = effective.angularDamping;
             rb.useGravity = true;
-            // Prevents tunneling through thin static colliders at high speed.
             rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
             rb.interpolation = RigidbodyInterpolation.Interpolate;
 
-            Vector3 velocity = BallisticsSolver.ComputeReleaseVelocity(trebuchetConfig, release.forward, powerMultiplier);
+            Vector3 velocity = BallisticsSolver.ComputeReleaseVelocity(trebuchetConfig, effective.mass, release.forward, powerMultiplier);
             rb.linearVelocity = velocity;
         }
     }

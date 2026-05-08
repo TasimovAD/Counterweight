@@ -1,7 +1,9 @@
 {
     "name": "Counterweight.Demolition",
     "rootNamespace": "Counterweight.Demolition",
-    "references": [],
+    "references": [
+        "Unity.InputSystem"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

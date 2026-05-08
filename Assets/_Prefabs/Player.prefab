@@ -168,6 +168,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7853130757451506420}
+  - component: {fileID: 5441622258032808840}
   m_Layer: 0
   m_Name: Head
   m_TagString: Untagged
@@ -191,6 +192,21 @@ Transform:
   - {fileID: 6350668773186163368}
   m_Father: {fileID: 2540769789477670748}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5441622258032808840
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3106277478925336991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62144e9dadb9b9746a8bd7ff40bb1ddf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Counterweight.Demolition::Counterweight.Demolition.CameraShake
+  decay: 4
+  maxOffset: 0.25
+  frequency: 22
 --- !u!1 &4056010823197998901
 GameObject:
   m_ObjectHideFlags: 0

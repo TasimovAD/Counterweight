@@ -6,19 +6,19 @@ namespace Counterweight.Tests
 {
     public sealed class BallisticsSimulatorTests
     {
+        private const float DefaultProjectileMass = 8f;
+
         private static TrebuchetConfig MakeConfig(
             float counterweightMass = 200f,
             float armLength = 4f,
             float releaseAngleDeg = 45f,
-            float launchEfficiency = 0.55f,
-            float projectileMass = 8f)
+            float launchEfficiency = 0.55f)
         {
             var cfg = ScriptableObject.CreateInstance<TrebuchetConfig>();
             cfg.counterweightMass = counterweightMass;
             cfg.armLength = armLength;
             cfg.releaseAngleDeg = releaseAngleDeg;
             cfg.launchEfficiency = launchEfficiency;
-            cfg.projectileMass = projectileMass;
             return cfg;
         }
 
@@ -29,7 +29,7 @@ namespace Counterweight.Tests
             var buf = new Vector3[64];
             Vector3 origin = new Vector3(1f, 5f, 2f);
 
-            int count = BallisticsSimulator.SimulatePath(cfg, origin, Vector3.forward, 1f, 0f, buf);
+            int count = BallisticsSimulator.SimulatePath(cfg, DefaultProjectileMass, origin, Vector3.forward, 1f, 0f, buf);
 
             Assert.Greater(count, 1);
             Assert.AreEqual(origin, buf[0]);
@@ -41,7 +41,7 @@ namespace Counterweight.Tests
             var cfg = MakeConfig();
             var buf = new Vector3[256];
 
-            int count = BallisticsSimulator.SimulatePath(cfg, Vector3.zero, Vector3.forward, 1f, 0f, buf, 0.05f);
+            int count = BallisticsSimulator.SimulatePath(cfg, DefaultProjectileMass, Vector3.zero, Vector3.forward, 1f, 0f, buf, 0.05f);
 
             float maxY = float.MinValue;
             int apexIndex = -1;
@@ -67,8 +67,8 @@ namespace Counterweight.Tests
             var bufA = new Vector3[1024];
             var bufB = new Vector3[1024];
 
-            int countA = BallisticsSimulator.SimulatePath(cfg, Vector3.zero, Vector3.forward, 0.5f, 0f, bufA, 0.05f, 0f);
-            int countB = BallisticsSimulator.SimulatePath(cfg, Vector3.zero, Vector3.forward, 1.5f, 0f, bufB, 0.05f, 0f);
+            int countA = BallisticsSimulator.SimulatePath(cfg, DefaultProjectileMass, Vector3.zero, Vector3.forward, 0.5f, 0f, bufA, 0.05f, 0f);
+            int countB = BallisticsSimulator.SimulatePath(cfg, DefaultProjectileMass, Vector3.zero, Vector3.forward, 1.5f, 0f, bufB, 0.05f, 0f);
 
             float distA = bufA[countA - 1].magnitude;
             float distB = bufB[countB - 1].magnitude;
@@ -82,11 +82,10 @@ namespace Counterweight.Tests
             var cfg = MakeConfig();
             var buf = new Vector3[1024];
 
-            int count = BallisticsSimulator.SimulatePath(cfg, new Vector3(0f, 5f, 0f), Vector3.forward, 1f, 0f, buf, 0.05f, 0f);
+            int count = BallisticsSimulator.SimulatePath(cfg, DefaultProjectileMass, new Vector3(0f, 5f, 0f), Vector3.forward, 1f, 0f, buf, 0.05f, 0f);
 
             Assert.Greater(count, 1);
             Assert.LessOrEqual(buf[count - 1].y, 0f);
-            // Earlier points should still be above ground.
             Assert.Greater(buf[count - 2].y, 0f);
         }
 
@@ -94,7 +93,7 @@ namespace Counterweight.Tests
         public void NullConfigReturnsZero()
         {
             var buf = new Vector3[16];
-            int count = BallisticsSimulator.SimulatePath(null, Vector3.zero, Vector3.forward, 1f, 0f, buf);
+            int count = BallisticsSimulator.SimulatePath(null, DefaultProjectileMass, Vector3.zero, Vector3.forward, 1f, 0f, buf);
             Assert.AreEqual(0, count);
         }
 
@@ -103,8 +102,24 @@ namespace Counterweight.Tests
         {
             var cfg = MakeConfig();
             var buf = new Vector3[0];
-            int count = BallisticsSimulator.SimulatePath(cfg, Vector3.zero, Vector3.forward, 1f, 0f, buf);
+            int count = BallisticsSimulator.SimulatePath(cfg, DefaultProjectileMass, Vector3.zero, Vector3.forward, 1f, 0f, buf);
             Assert.AreEqual(0, count);
+        }
+
+        [Test]
+        public void LighterProjectileFliesFurther()
+        {
+            var cfg = MakeConfig();
+            var bufHeavy = new Vector3[1024];
+            var bufLight = new Vector3[1024];
+
+            int countHeavy = BallisticsSimulator.SimulatePath(cfg, projectileMass: 16f, Vector3.zero, Vector3.forward, 1f, 0f, bufHeavy, 0.05f, 0f);
+            int countLight = BallisticsSimulator.SimulatePath(cfg, projectileMass: 4f, Vector3.zero, Vector3.forward, 1f, 0f, bufLight, 0.05f, 0f);
+
+            float distHeavy = bufHeavy[countHeavy - 1].magnitude;
+            float distLight = bufLight[countLight - 1].magnitude;
+
+            Assert.Greater(distLight, distHeavy);
         }
     }
 }

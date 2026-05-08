@@ -14,6 +14,8 @@ GameObject:
   - component: {fileID: 7375769242339014677}
   - component: {fileID: 3276167224250720973}
   - component: {fileID: 3722171324977125288}
+  - component: {fileID: 2855758707369201772}
+  - component: {fileID: 8728827045035189861}
   m_Layer: 0
   m_Name: Block
   m_TagString: Untagged
@@ -154,3 +156,30 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Counterweight.Demolition::Counterweight.Demolition.Block
   config: {fileID: 11400000, guid: 63b1648cbea633d4ab5a37014da475ab, type: 2}
+--- !u!114 &2855758707369201772
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2747406203451129534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95af7087d48d51149961e4970e888f4c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Counterweight.Demolition::Counterweight.Demolition.BlockEffects
+  config: {fileID: 11400000, guid: 4395d3d139408ab47a974a5095b5369d, type: 2}
+--- !u!114 &8728827045035189861
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2747406203451129534}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 727f7ca354c71a3429610237eb41d301, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Counterweight.Demolition::Counterweight.Demolition.BlockDebrisCleaner
+  restCleanupDelay: 30
+  voidY: -25
