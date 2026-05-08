@@ -564,6 +564,150 @@ GameObject. Если поле остаётся пустым — перетащи
 
 ---
 
+# Iteration 3 — FPV персонаж + ритуал интеракций
+
+В коде уже есть:
+- **`Counterweight.Player.asmdef`** — новая сборка.
+  - `IInteractable` — интерфейс для всего, что игрок может «нажать E».
+  - `PlayerController` — CharacterController + WASD + mouse look + cursor lock.
+  - `PlayerInteractor` — raycast от камеры, OnGUI HUD (crosshair + prompt).
+- **Три интерактивных компонента** в `Counterweight.Trebuchet/Interactables/`:
+  - `WinchInteractable` — натянуть лебёдку (Idle → WindingUp).
+  - `LoadStoneInteractable` — зарядить камень (Armed → Loaded).
+  - `ReleaseLeverInteractable` — дёрнуть рычаг (Loaded → Firing).
+- **Новое состояние `Loaded`** в `TrebuchetState`.
+- **`TrebuchetController` отрефакторен**: вместо одного `RequestFire()` теперь три метода (`BeginWindUp`, `LoadProjectile`, `ReleaseShot`). Подписка на `InputBridge.FirePressed` убрана — клик по LMB больше **не запускает** требушет.
+
+## Шаг 16. Создать Player prefab
+
+### 16a. Новый GameObject
+1. Открой **`FiringRange.unity`** (или любую сцену).
+2. **GameObject → 3D Object → Capsule**. Это будет временное визуальное тело.
+3. Переименуй в `Player`.
+4. Удали с него **`Capsule Collider`** — нам нужен только `CharacterController`.
+5. **Add Component → Character Controller**. Параметры:
+   - **Slope Limit**: 45.
+   - **Step Offset**: 0.3.
+   - **Skin Width**: 0.08.
+   - **Center**: (0, 0.9, 0).
+   - **Radius**: 0.4.
+   - **Height**: 1.8.
+6. **Add Component → Player Controller** (`Counterweight.Player.PlayerController`).
+
+### 16b. Камера-голова
+1. Создай child: правый клик по `Player` → **Create Empty** → имя `Head`.
+2. Position в локальных координатах: `(0, 1.65, 0)` (высота глаз).
+3. Внутри Head создай child: **Camera** (правый клик → Camera, или **Create Empty** + Add Component → Camera). Имя `PlayerCamera`.
+4. Камера в localPosition `(0, 0, 0)`, localRotation `(0, 0, 0)`.
+5. **Удали Audio Listener** с этой камеры если есть лишний (оставь один на весь сцену).
+6. **Tag** камеры: `MainCamera` (если в сцене ещё была старая Main Camera — её удали или сними тег).
+7. На `PlayerCamera` **Add Component → Player Interactor** (`Counterweight.Player.PlayerInteractor`).
+8. На `PlayerCamera` параметр **Ray Origin** — пусто оставь (скрипт сам подставит свой Transform).
+9. **Max Distance**: 3 (метра).
+
+### 16c. Ссылка на Camera Pivot в PlayerController
+1. Выдели `Player`.
+2. В `PlayerController` поле **Camera Pivot** перетащи `Head` (НЕ `PlayerCamera`).
+3. Это нужно, чтобы pitch (вертикальный поворот) шёл по Head, а yaw (горизонтальный) по корню `Player`.
+
+### 16d. Сохранить как prefab (опционально)
+1. Перетащи `Player` из Hierarchy в `Assets/Prefabs/Player.prefab` для удобства.
+
+## Шаг 17. Расставить интерактивные точки на префабе требушета
+
+Открой `Assets/Prefabs/Trebuchet.prefab` (двойной клик).
+
+Для **каждой** из трёх точек (Winch, LoadStone, ReleaseLever) сделай:
+
+### 17a. Winch (лебёдка)
+1. Внутри префаба создай child: **Create Empty** → `WinchPoint`.
+2. Положение: где-то у основания требушета, рядом с физической лебёдкой / воротом. Если на модели нет явной лебёдки — поставь сбоку у основания.
+3. **Add Component → Sphere Collider**:
+   - **Is Trigger**: ✅ ON (чтобы игрок проходил сквозь, но raycast мог зацепиться).
+   - **Radius**: 0.5.
+4. **Add Component → Winch Interactable**.
+5. **Controller**: перетащи корень требушета.
+
+### 17b. LoadStone (корзина для камня)
+1. Create Empty → `LoadStonePoint`.
+2. Position: примерно где `ReleasePoint` или на корзине пращи — то место, куда «кладут» камень. Можно ниже, в зоне доступа игроку — например на уровне пояса возле стрелы.
+3. **Sphere Collider** с Is Trigger ✅ и Radius 0.5.
+4. **Add Component → Load Stone Interactable**.
+5. **Controller**: корень требушета.
+
+### 17c. ReleaseLever (рычаг)
+1. Create Empty → `ReleaseLeverPoint`.
+2. Position: где-нибудь, имитирующее рычаг — обычно с другой стороны от лебёдки.
+3. **Sphere Collider** с Is Trigger ✅ и Radius 0.5.
+4. **Add Component → Release Lever Interactable**.
+5. **Controller**: корень требушета.
+
+⚠️ Важно: **все три collider'а должны быть с Is Trigger = ON**. PlayerInteractor по умолчанию использует `QueryTriggerInteraction.Collide` для raycast'а, так что триггеры он находит.
+
+⚠️ Если не уверен в позициях — пока что просто разнеси три точки вокруг основания требушета на расстоянии 1-2 метра друг от друга. Главное — чтобы можно было подойти к каждой и навестись курсором.
+
+Сохрани префаб.
+
+## Шаг 18. Обновить FiringRange сцену
+
+1. Открой `FiringRange.unity`.
+2. **Удали** старую Main Camera (с `DebugFlyCamera`) — её заменяет камера в Player prefab.
+3. Размести `Player` GameObject на земле в пределах ~5-10 метров от требушета. Например `(5, 0, -5)`.
+4. **`Input` GameObject** с `InputBridge` можно **удалить** — его никто не слушает теперь. (Или оставить, не мешает.)
+5. Сохрани сцену.
+
+## Шаг 19. Smoke test Iteration 3
+
+1. Play.
+2. Курсор должен исчезнуть, мышь крутит вид.
+3. **WASD** ходит, **Shift** ускоряет.
+4. **Esc** — курсор возвращается. **LMB** в окне Game — снова захватывается.
+5. Подойди к требушету. Наведись на одну из трёх точек:
+   - На лебёдке — внизу появится «**[E] Натянуть лебёдку**».
+   - На корзине — пусто (state Idle, эта интеракция недоступна).
+6. Нажми **E** на лебёдке. Запустится WindUp анимация.
+7. Через секунду состояние станет Armed. Подойди к корзине → «**[E] Зарядить камень**». Нажми E.
+8. Подойди к рычагу → «**[E] Дёрнуть рычаг**». Нажми E. Снаряд летит.
+9. Через 3 секунды requirements возвращаются в Idle, цикл сначала.
+10. Призрак траектории видно в Idle/Armed/Loaded, нет в Firing/Released.
+
+### 19a. Если что-то не работает
+
+| Симптом | Причина |
+|---|---|
+| Курсор не захватывается | PlayerController не на корне Player; CharacterController отсутствует |
+| Камера не крутится | Camera Pivot в PlayerController не назначен на Head |
+| Не появляется prompt при наведении | Collider на интерактивной точке отключён, не Trigger, или интерактив скрипт без ссылки на controller |
+| Промпт «недоступен» (state неподходящий) | По дизайну: лебёдка только в Idle, корзина только в Armed, рычаг только в Loaded. CanInteract проверяет состояние |
+| Раз нажал E — несколько раз сработало | Не должно — `wasPressedThisFrame` фиксирует только один кадр. Если повторяется — проверь, что нет двух PlayerInteractor'ов |
+| Игрок проваливается под землю | Plane коллайдер односторонний; используй Cube с scale (20, 0.5, 20) или включи `Convex` на MeshCollider |
+| Игрок не двигается | CharacterController застрял в геометрии. Поставь Player выше уровня земли; Skin Width не должен быть 0 |
+| Crosshair не виден | OnGUI рендерит поверх — проверь, что не закрыт чёрной зоной (например, dropdown'ом). Должен быть 4×4 белый пиксель в центре |
+
+## Шаг 20. (Опционально) Удалить ненужные старые компоненты
+
+Теперь, когда Player работает:
+- Из сцены `FiringRange` можно убрать `Input` GameObject (с `InputBridge`).
+- Скрипт `DebugFlyCamera.cs` остался в `Counterweight.Trebuchet/`, но не используется. Можно удалить — игра без него не сломается.
+- `InputBridge.cs` не вызывается ничем — можно тоже удалить вместе с самой сборкой `Counterweight.Input`. Но безопаснее оставить пока: возможно понадобится для других input-фичей позже.
+
+---
+
+## Управление в Iteration 3
+
+| Клавиша | Действие |
+|---|---|
+| WASD | Ходьба |
+| Shift | Спринт |
+| Mouse | Обзор |
+| E | Интеракция |
+| ←/→ | Поворот основания требушета (через TrebuchetAimController) |
+| ↑/↓ или Mouse Wheel | Регулировка мощности |
+| Esc | Освободить курсор |
+| LMB (в Game-окне) | Захватить курсор |
+
+---
+
 ## Что **не нужно** делать
 
 - Не трогать `SampleScene.unity` — там пусто, она нам не интересна.

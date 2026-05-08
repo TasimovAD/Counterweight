@@ -1,21 +1,21 @@
 using System.Collections;
 using Counterweight.Core;
-using Counterweight.Input;
 using UnityEngine;
 
 namespace Counterweight.Trebuchet
 {
     /// <summary>
-    /// Owns trebuchet state, listens for Fire input, drives the Animator,
-    /// and tells the spawner when the animation event fires.
+    /// Owns trebuchet state, drives the Animator, and tells the spawner
+    /// when the animation event fires.
     ///
-    /// Two-stage interaction:
-    ///   Idle      --(Fire pressed)--> WindingUp --(anim event)--> Armed
-    ///   Armed     --(Fire pressed)--> Firing    --(anim event)--> Released
-    ///   Released  --(timer)-------->  Idle
+    /// State flow (advanced via player interactions, see Counterweight.Player):
+    ///   Idle      --(BeginWindUp)----> WindingUp --(anim event)--> Armed
+    ///   Armed     --(LoadProjectile)-> Loaded
+    ///   Loaded    --(ReleaseShot)----> Firing    --(anim event)--> Released
+    ///   Released  --(timer)---------->  Idle
     ///
-    /// The same input button advances the trebuchet through the active states.
-    /// Presses during WindingUp/Firing/Released are ignored.
+    /// Calls outside the matching state are ignored (no-op), so it's safe for
+    /// each interactable to call its method without checking state itself.
     /// </summary>
     public sealed class TrebuchetController : MonoBehaviour
     {
@@ -44,10 +44,6 @@ namespace Counterweight.Trebuchet
                 animationRelay.WindUpComplete += HandleWindUpComplete;
                 animationRelay.ProjectileRelease += HandleProjectileRelease;
             }
-            if (InputBridge.Instance != null)
-            {
-                InputBridge.Instance.FirePressed += RequestFire;
-            }
         }
 
         private void OnDisable()
@@ -57,61 +53,47 @@ namespace Counterweight.Trebuchet
                 animationRelay.WindUpComplete -= HandleWindUpComplete;
                 animationRelay.ProjectileRelease -= HandleProjectileRelease;
             }
-            if (InputBridge.Instance != null)
-            {
-                InputBridge.Instance.FirePressed -= RequestFire;
-            }
         }
 
-        private void Start()
+        public void BeginWindUp()
         {
-            // InputBridge may have been spawned after this controller; subscribe lazily if needed.
-            if (InputBridge.Instance != null)
-            {
-                InputBridge.Instance.FirePressed -= RequestFire;
-                InputBridge.Instance.FirePressed += RequestFire;
-            }
-        }
-
-        public void RequestFire()
-        {
+            if (State != TrebuchetState.Idle) return;
             if (animator == null)
             {
                 Debug.LogError("[TrebuchetController] Animator is not assigned.", this);
                 return;
             }
+            State = TrebuchetState.WindingUp;
+            animator.SetTrigger(WindUpTrigger);
+        }
 
-            switch (State)
+        public void LoadProjectile()
+        {
+            if (State != TrebuchetState.Armed) return;
+            State = TrebuchetState.Loaded;
+        }
+
+        public void ReleaseShot()
+        {
+            if (State != TrebuchetState.Loaded) return;
+            if (animator == null)
             {
-                case TrebuchetState.Idle:
-                    State = TrebuchetState.WindingUp;
-                    animator.SetTrigger(WindUpTrigger);
-                    break;
-
-                case TrebuchetState.Armed:
-                    State = TrebuchetState.Firing;
-                    animator.SetTrigger(FireTrigger);
-                    break;
-
-                // WindingUp / Firing / Released / Resetting -> input ignored.
+                Debug.LogError("[TrebuchetController] Animator is not assigned.", this);
+                return;
             }
+            State = TrebuchetState.Firing;
+            animator.SetTrigger(FireTrigger);
         }
 
         private void HandleWindUpComplete()
         {
-            if (State != TrebuchetState.WindingUp)
-            {
-                return;
-            }
+            if (State != TrebuchetState.WindingUp) return;
             State = TrebuchetState.Armed;
         }
 
         private void HandleProjectileRelease()
         {
-            if (State != TrebuchetState.Firing)
-            {
-                return;
-            }
+            if (State != TrebuchetState.Firing) return;
 
             if (spawner != null)
             {

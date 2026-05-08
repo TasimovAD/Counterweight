@@ -83,6 +83,7 @@ namespace Counterweight.Trebuchet
                 case TrebuchetState.Idle:
                 case TrebuchetState.WindingUp:
                 case TrebuchetState.Armed:
+                case TrebuchetState.Loaded:
                     return true;
                 default:
                     return false;

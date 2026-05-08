@@ -1,5 +1,73 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2959470428176391802
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3846999676944803508}
+  - component: {fileID: 1703768561159239190}
+  - component: {fileID: 5436448081329811497}
+  m_Layer: 0
+  m_Name: LoadStonePoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3846999676944803508
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2959470428176391802}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.02, y: 0.56563, z: -3.665}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4793842779335961313}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &1703768561159239190
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2959470428176391802}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5436448081329811497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2959470428176391802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c5e05e29c3b560644b7f3cc445619b1a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Counterweight.Trebuchet::Counterweight.Trebuchet.Interactables.LoadStoneInteractable
+  controller: {fileID: 7035542906324796199}
+  promptText: "\u0417\u0430\u0440\u044F\u0434\u0438\u0442\u044C \u043A\u0430\u043C\u0435\u043D\u044C"
 --- !u!1 &4865112984506086939
 GameObject:
   m_ObjectHideFlags: 0
@@ -194,6 +262,142 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4793842779335961313}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5657044314670715378
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 904764178648940897}
+  - component: {fileID: 3013967652922880568}
+  - component: {fileID: 6854714187444777512}
+  m_Layer: 0
+  m_Name: ReleaseLeverPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &904764178648940897
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5657044314670715378}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.01, y: 1.07, z: -3.01}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4793842779335961313}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &3013967652922880568
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5657044314670715378}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6854714187444777512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5657044314670715378}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 327ccdb8aabcf1b479fdd5a627921f26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Counterweight.Trebuchet::Counterweight.Trebuchet.Interactables.ReleaseLeverInteractable
+  controller: {fileID: 7035542906324796199}
+  promptText: "\u0414\u0451\u0440\u043D\u0443\u0442\u044C \u0440\u044B\u0447\u0430\u0433"
+--- !u!1 &6100749006399899967
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1658503079334136033}
+  - component: {fileID: 5950481632275136776}
+  - component: {fileID: 4142591619039115930}
+  m_Layer: 0
+  m_Name: WinchPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1658503079334136033
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6100749006399899967}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.036, y: 1.061, z: -3.007}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4793842779335961313}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &5950481632275136776
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6100749006399899967}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &4142591619039115930
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6100749006399899967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73f4672a6ec47d04dbdfb232c2dc720c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Counterweight.Trebuchet::Counterweight.Trebuchet.Interactables.WinchInteractable
+  controller: {fileID: 7035542906324796199}
+  promptText: "\u041D\u0430\u0442\u044F\u043D\u0443\u0442\u044C \u043B\u0435\u0431\u0451\u0434\u043A\u0443"
 --- !u!1 &6938165983426293232
 GameObject:
   m_ObjectHideFlags: 0
@@ -293,6 +497,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 67ab6d81c2ab8fc4d805d7a6759589f9, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5016177336568610276}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 67ab6d81c2ab8fc4d805d7a6759589f9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1658503079334136033}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 67ab6d81c2ab8fc4d805d7a6759589f9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3846999676944803508}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 67ab6d81c2ab8fc4d805d7a6759589f9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 904764178648940897}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 67ab6d81c2ab8fc4d805d7a6759589f9, type: 3}
       insertIndex: -1
