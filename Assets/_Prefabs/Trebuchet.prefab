@@ -67,6 +67,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Counterweight.Trebuchet::Counterweight.Trebuchet.Interactables.LoadStoneInteractable
   controller: {fileID: 7035542906324796199}
+  selector: {fileID: 6932206884473340812}
   promptText: "\u0417\u0430\u0440\u044F\u0434\u0438\u0442\u044C \u043A\u0430\u043C\u0435\u043D\u044C"
 --- !u!1 &4865112984506086939
 GameObject:
@@ -227,7 +228,8 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: df766df1c955e7d4d94fa975e955234f, type: 2}
   aimController: {fileID: 1698224487492160349}
   releasePoint: {fileID: 8780092760043946034}
-  projectileConfig: {fileID: 11400000, guid: d7e61200918b3114386b204c0efa2db5, type: 2}
+  projectileSelector: {fileID: 6932206884473340812}
+  fallbackProjectileConfig: {fileID: 11400000, guid: d7e61200918b3114386b204c0efa2db5, type: 2}
   groundY: 0
   dt: 0.05
   maxPoints: 200
@@ -519,6 +521,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 67ab6d81c2ab8fc4d805d7a6759589f9, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1698224487492160349}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 67ab6d81c2ab8fc4d805d7a6759589f9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6932206884473340812}
   m_SourcePrefab: {fileID: 100100000, guid: 67ab6d81c2ab8fc4d805d7a6759589f9, type: 3}
 --- !u!95 &1470155139491426459 stripped
 Animator:
@@ -559,7 +564,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 176cad1364183ac4f9cedeb1093f5fa4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Counterweight.Trebuchet::Counterweight.Trebuchet.ProjectileSpawner
-  projectileConfig: {fileID: 11400000, guid: d7e61200918b3114386b204c0efa2db5, type: 2}
+  defaultProjectileConfig: {fileID: 11400000, guid: d7e61200918b3114386b204c0efa2db5, type: 2}
 --- !u!114 &7035542906324796199
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -599,3 +604,20 @@ MonoBehaviour:
   startingPower: 1
   keyPowerSpeed: 0.5
   scrollPowerStep: 0.001
+--- !u!114 &6932206884473340812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5317895978145312859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d950f492ea4783347bd06811daf5c81a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Counterweight.Trebuchet::Counterweight.Trebuchet.ProjectileSelector
+  configs:
+  - {fileID: 11400000, guid: d7e61200918b3114386b204c0efa2db5, type: 2}
+  - {fileID: 11400000, guid: 4cd04fb78a28fb74286a59d34517fbe7, type: 2}
+  - {fileID: 11400000, guid: e0e5f120b2fa07b40b84f880ceb90413, type: 2}
+  lockSource: {fileID: 7035542906324796199}

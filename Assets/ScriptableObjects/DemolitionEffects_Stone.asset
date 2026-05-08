@@ -12,15 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2157658a1daf5ea469c5c22dd949b840, type: 3}
   m_Name: DemolitionEffects_Stone
   m_EditorClassIdentifier: Counterweight.Demolition::Counterweight.Demolition.DemolitionEffectsConfig
-  impactDustPrefab: {fileID: 0}
-  detachDustPrefab: {fileID: 0}
+  impactDustPrefab: {fileID: 2112694270088863083, guid: a9c72d6b66e4bd24bb23a333d6247c21, type: 3}
+  detachDustPrefab: {fileID: 2112694270088863083, guid: d287d21d4419ea94281ae2ca813cc903, type: 3}
   impactDustLifetime: 2
   detachDustLifetime: 4
-  impactThudClip: {fileID: 0}
+  impactThudClip: {fileID: 8300000, guid: 9f34d91a60a3e044ca44ef7a3ff683b5, type: 3}
   impactThudVolume: 0.4
-  jointCrackClip: {fileID: 0}
+  jointCrackClip: {fileID: 8300000, guid: 7f2300abd5a937d47a0cd2bb6e645c55, type: 3}
   jointCrackVolume: 0.6
-  collapseRumbleClip: {fileID: 0}
+  collapseRumbleClip: {fileID: 8300000, guid: 9f34d91a60a3e044ca44ef7a3ff683b5, type: 3}
   collapseRumbleVolume: 0.7
   impactShake: 0
   detachShake: 0.04

@@ -220,6 +220,7 @@ GameObject:
   - component: {fileID: 5551486288780842767}
   - component: {fileID: 6269734810493822955}
   - component: {fileID: 7838838843398555484}
+  - component: {fileID: 3173169809041117466}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -258,7 +259,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4056010823197998901}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -344,3 +345,16 @@ MonoBehaviour:
   lookSensitivity: 0.12
   minPitchDeg: -85
   maxPitchDeg: 85
+--- !u!114 &3173169809041117466
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4056010823197998901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d1a0acffb5407b409bb3ff32917e1a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Counterweight.Demolition::Counterweight.Demolition.EngineerLensInput
+  drawHint: 1
